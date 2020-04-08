@@ -1,0 +1,2 @@
+[24-Feb-2020 22:20:21 UTC] PHP Fatal error:  Class 'Illuminate\Console\Command' not found in /home/garageauto/public_html/app/Console/Commands/CreateProductsFeed.php on line 9
+[24-Feb-2020 22:20:36 UTC] PHP Fatal error:  Class 'Illuminate\Console\Command' not found in /home/garageauto/public_html/app/Console/Commands/CreateProductsFeed.php on line 9

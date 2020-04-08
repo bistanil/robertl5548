@@ -1,0 +1,130 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use Illuminate\Http\Request;
+use Auth;
+use Session;
+use Validator;
+use App\Http\Requests;
+use App\Http\Controllers\Controller;
+use App\User;
+use App;
+use App\Models\Client;
+use App\Models\ClientCompany;
+use App\Http\Requests\Admin\ClientCompanyRequest;
+use JavaScript;
+use URL;
+
+class ClientCompaniesController extends Controller
+{
+
+    public function __construct(User $user)
+    {
+        $this->middleware('auth');  
+        JavaScript::put(['baseUrl' => URL::to('/')]);             
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index($slug, Client $client)
+    {
+        session()->put('adminItemsUrl',url()->full());
+        $companies = $client->bySlug($slug)->companies()->paginate();
+        $breadcrumb='clientCompanies';
+        $item = $client->bySlug($slug);
+        return view('admin.partials.clients.companies.main', compact('companies','breadcrumb', 'item'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create($slug, Client $client)
+    {
+        $item = $client->bySlug($slug);
+        $breadcrumb='clientCompany.create';
+        return view('admin.partials.clients.companies.form', compact('breadcrumb', 'item'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store($slug, Client $client, ClientCompanyRequest $request)
+    {
+        //
+        $client = $client->bySlug($slug);
+        $company = new ClientCompany($request->all());
+        $company->client_id = $client->id;
+        if ($company->save()) flash()->success(trans('admin/common.saveFlashTitle'), trans('admin/common.saveSuccessText'));
+        else flash()->error(trans('admin/common.saveFlashTitle'), trans('admin/common.saveErrorText'));
+        if (session()->has('adminItemsUrl')) return redirect(session()->get('adminItemsUrl'));
+        return redirect(route('admin-client-companies.index', ['slug' => $slug]));
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($slug, Client $client, $id, ClientCompany $company)
+    {
+        //
+        $company = $company->find($id);
+        $breadcrumb='clientCompany.edit';
+        $item=$company;
+        return view('admin.partials.clients.companies.form', compact('company','breadcrumb','item'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(ClientCompanyRequest $request, $slug, Client $client, $id, ClientCompany $company)
+    {
+        //
+        $company=$company->find($id);        
+        if ($company->update($request->all())) flash()->success(trans('admin/common.updateFlashTitle'), trans('admin/common.updateSuccessText'));
+        else flash()->error(trans('admin/common.updateFlashTitle'), trans('admin/common.updateErrorText'));
+        if (session()->has('adminItemsUrl')) return redirect(session()->get('adminItemsUrl'));        
+        return redirect(route('admin-client-companies.index', ['slug' => $company->client->slug]));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($slug, $id, ClientCompany $company)
+    {
+        //
+        $company=$company->find($id);        
+        if ($company->delete()) flash()->success(trans('admin/common.deleteFlashTitle'), trans('admin/common.deleteSuccessText'));
+        else flash()->error(trans('admin/common.deleteFlashTitle'), trans('admin/common.deleteErrorText'));
+        if (session()->has('adminItemsUrl')) return redirect(session()->get('adminItemsUrl'));     
+        return redirect(route('admin-client-companies.index', ['slug' => $company->client->slug]));
+    }
+}
